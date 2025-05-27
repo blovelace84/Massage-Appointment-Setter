@@ -1,0 +1,92 @@
+/* src/App.css */
+#root { /* Vite's default root element */
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.App {
+  font-family: Arial, sans-serif;
+  max-width: 800px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+}
+
+h1, h2 {
+  color: #333;
+  text-align: center;
+}
+
+.appointment-form, .appointment-list {
+  background-color: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.appointment-form div {
+  margin-bottom: 15px;
+}
+
+.appointment-form label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: bold;
+  color: #555;
+}
+
+.appointment-form input[type="text"],
+.appointment-form input[type="datetime-local"],
+.appointment-form select {
+  width: calc(100% - 22px); /* Account for padding and border */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.appointment-form button {
+  background-color: #007bff;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+  width: 100%;
+}
+
+.appointment-form button:hover {
+  background-color: #0056b3;
+}
+
+.appointment-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.appointment-list li {
+  background-color: #e9ecef;
+  margin-bottom: 10px;
+  padding: 10px 15px;
+  border-radius: 4px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+}
+
+.appointment-list li strong {
+  color: #0056b3;
+}
+
+p {
+  text-align: center;
+  color: #666;
+}

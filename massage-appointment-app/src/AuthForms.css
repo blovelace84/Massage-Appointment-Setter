@@ -1,7 +1,8 @@
 /* Add to src/App.css */
 
 .auth-container, .auth-status {
-  background-color: #fff;
+  background: #4afd1d;
+  background: linear-gradient(90deg, rgba(74, 253, 29, 1) 50%, rgba(17, 17, 214, 1) 100%);
   padding: 20px;
   margin-bottom: 20px;
   border-radius: 5px;

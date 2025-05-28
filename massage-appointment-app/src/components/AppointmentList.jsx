@@ -1,15 +1,16 @@
 // src/components/AppointmentList.jsx
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebaseConfig'; // Adjust path
-import { collection, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore'; // orderBy for sorting
-import { useAuth } from '../AuthContext'; // Adjust path
-import { doc } from 'firebase/firestore'; // Import necessary Firestore functions
+import { db } from '../firebaseConfig';
+import { collection, getDocs, query, where, orderBy, doc, deleteDoc } from 'firebase/firestore';
+import { useAuth } from '../AuthContext';
+import RescheduleForm from './RescheduleForm'; // NEW: Import RescheduleForm
 
 function AppointmentList({ refreshTrigger }) {
   const { currentUser } = useAuth();
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [editingAppointment, setEditingAppointment] = useState(null); // NEW: State to hold appointment being edited
 
   const fetchAppointments = async () => {
     if (!currentUser) {
@@ -21,11 +22,10 @@ function AppointmentList({ refreshTrigger }) {
     setLoading(true);
     setError('');
     try {
-      // Filter appointments by the current user's UID and order by dateTime
       const q = query(
         collection(db, "appointments"),
         where("userId", "==", currentUser.uid),
-        orderBy("dateTime", "asc") // Order by date and time
+        orderBy("dateTime", "asc")
       );
       const querySnapshot = await getDocs(q);
       const fetchedAppointments = querySnapshot.docs.map(doc => ({
@@ -41,25 +41,34 @@ function AppointmentList({ refreshTrigger }) {
     }
   };
 
-  //Function to handle appointments cancelation
   const handleCancel = async (appointmentId, clientEmail, service, dateTime) => {
-    if(window.confirm(`Are you sure you want to cancel the ${service} appointment for ${clientEmail} on ${new Date(dateTime). toLocaleString()}? `)){
-      try{
+    if (window.confirm(`Are you sure you want to cancel the ${service} appointment for ${clientEmail} on ${new Date(dateTime).toLocaleString()}?`)) {
+      try {
         await deleteDoc(doc(db, "appointments", appointmentId));
-        alert('Appointment canceled successfully.');
-        fetchAppointments();
-      }catch(e) {
-        console.error("Error canceling appointment: ", e);
+        alert('Appointment cancelled successfully!');
+        fetchAppointments(); // Refresh the list after cancellation
+      } catch (e) {
+        console.error("Error cancelling appointment: ", e);
         alert("Failed to cancel appointment: " + e.message);
         setError("Failed to cancel appointment: " + e.message);
       }
     }
   };
 
-  // Fetch appointments whenever currentUser or refreshTrigger changes
+  // NEW: Function to initiate reschedule
+  const handleRescheduleClick = (appointment) => {
+    setEditingAppointment(appointment); // Set the appointment object to be edited
+  };
+
+  // NEW: Callback for when rescheduling is complete (or cancelled)
+  const handleRescheduleComplete = () => {
+    setEditingAppointment(null); // Clear editing state
+    fetchAppointments(); // Refresh the list
+  };
+
   useEffect(() => {
     fetchAppointments();
-  }, [currentUser, refreshTrigger]); // Added refreshTrigger to re-fetch when new appointment is added
+  }, [currentUser, refreshTrigger]);
 
   if (!currentUser) {
     return <p>Log in to view your appointments.</p>;
@@ -76,25 +85,39 @@ function AppointmentList({ refreshTrigger }) {
   return (
     <section className="appointment-list">
       <h2>Your Upcoming Appointments</h2>
-      {appointments.length === 0 ? (
+      {editingAppointment ? ( // Conditionally render RescheduleForm
+        <RescheduleForm
+          appointment={editingAppointment}
+          onRescheduleComplete={handleRescheduleComplete}
+        />
+      ) : appointments.length === 0 ? (
         <p>You have no appointments scheduled yet.</p>
       ) : (
         <ul>
           {appointments.map((appointment) => (
             <li key={appointment.id}>
-            <div>
-              <strong>{appointment.clientEmail}</strong> - {appointment.service} on {new Date(appointment.dateTime).toLocaleString()}
-            </div>
-            <button 
-              className='cancel-button'
-              onClick={() => handleCancel(
-                appointment.id,
-                appointment.clientEmail,
-                appointment.service,
-                appointment.dateTime
-              )}>
-                Cancel Appointment
-              </button>
+              <div>
+                <strong>{appointment.clientEmail}</strong> - {appointment.service} on {new Date(appointment.dateTime).toLocaleString()}
+              </div>
+              <div className="appointment-actions"> {/* NEW: Container for buttons */}
+                <button
+                  className="reschedule-button" // Add a class for styling
+                  onClick={() => handleRescheduleClick(appointment)}
+                >
+                  Reschedule
+                </button>
+                <button
+                  className="cancel-button"
+                  onClick={() => handleCancel(
+                    appointment.id,
+                    appointment.clientEmail,
+                    appointment.service,
+                    appointment.dateTime
+                  )}
+                >
+                  Cancel
+                </button>
+              </div>
             </li>
           ))}
         </ul>

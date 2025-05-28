@@ -4,6 +4,7 @@ import { db } from '../firebaseConfig';
 import { collection, getDocs, query, where, orderBy, doc, deleteDoc } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
 import RescheduleForm from './RescheduleForm'; // NEW: Import RescheduleForm
+import './AppointmentList.css'; // NEW: Import CSS for styling
 
 function AppointmentList({ refreshTrigger }) {
   const { currentUser } = useAuth();

@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../firebaseConfig'; // Adjust path
 import { collection, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore'; // orderBy for sorting
 import { useAuth } from '../AuthContext'; // Adjust path
+import { doc } from 'firebase/firestore'; // Import necessary Firestore functions
 
 function AppointmentList({ refreshTrigger }) {
   const { currentUser } = useAuth();

@@ -1,7 +1,7 @@
 // src/components/AppointmentList.jsx
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebaseConfig'; // Adjust path
-import { collection, getDocs, query, where, orderBy } from 'firebase/firestore'; // orderBy for sorting
+import { collection, getDocs, query, where, orderBy, deleteDoc } from 'firebase/firestore'; // orderBy for sorting
 import { useAuth } from '../AuthContext'; // Adjust path
 
 function AppointmentList({ refreshTrigger }) {
@@ -40,6 +40,21 @@ function AppointmentList({ refreshTrigger }) {
     }
   };
 
+  //Function to handle appointments cancelation
+  const handleCancel = async (appointmentId, clientEmail, service, dateTime) => {
+    if(window.confirm(`Are you sure you want to cancel the ${service} appointment for ${clientEmail} on ${new Date(dateTime). toLocaleString()}? `)){
+      try{
+        await deleteDoc(doc(db, "appointments", appointmentId));
+        alert('Appointment canceled successfully.');
+        fetchAppointments();
+      }catch(e) {
+        console.error("Error canceling appointment: ", e);
+        alert("Failed to cancel appointment: " + e.message);
+        setError("Failed to cancel appointment: " + e.message);
+      }
+    }
+  };
+
   // Fetch appointments whenever currentUser or refreshTrigger changes
   useEffect(() => {
     fetchAppointments();
@@ -66,7 +81,19 @@ function AppointmentList({ refreshTrigger }) {
         <ul>
           {appointments.map((appointment) => (
             <li key={appointment.id}>
+            <div>
               <strong>{appointment.clientEmail}</strong> - {appointment.service} on {new Date(appointment.dateTime).toLocaleString()}
+            </div>
+            <button 
+              className='cancel-button'
+              onClick={() => handleCancel(
+                appointment.id,
+                appointment.clientEmail,
+                appointment.service,
+                appointment.dateTime
+              )}>
+                Cancel Appointment
+              </button>
             </li>
           ))}
         </ul>

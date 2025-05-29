@@ -66,8 +66,15 @@ h1, h2 {
   background-color: #0056b3;
 }
 
-
-/* Add to src/App.css */
+/* Basic styling for react-datepicker input */
+.date-picker-input {
+  width: calc(100% - 22px); /* Adjust as needed */
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
 
 .appointment-actions {
   display: flex; /* Arrange buttons next to each other */

@@ -1,23 +1,21 @@
 // src/components/RescheduleForm.jsx
-import React, { useState, useEffect } from 'react'; // NEW: useEffect
+import React, { useState, useEffect } from 'react';
 import { db } from '../firebaseConfig';
-import { doc, updateDoc, getDocs, collection } from 'firebase/firestore'; // NEW: getDocs, collection
+import { doc, updateDoc, getDocs, collection } from 'firebase/firestore';
 import { useAuth } from '../AuthContext';
-import DatePicker from 'react-datepicker'; // NEW
-import 'react-datepicker/dist/react-datepicker.css'; // NEW: Import styles
-import moment from 'moment'; // NEW
-import { generateAvailableSlots, filterBookedSlots, SERVICE_DURATIONS } from '../utils/availability'; // NEW
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
+import moment from 'moment';
+import { generateAvailableSlots, filterBookedSlots, SERVICE_DURATIONS } from '../utils/availability';
 
 function RescheduleForm({ appointment, onRescheduleComplete }) {
   const { currentUser } = useAuth();
-  // Initialize date picker with current appointment date
   const [selectedDate, setSelectedDate] = useState(moment(appointment.dateTime).toDate());
-  // Initialize time slot with current appointment time
   const [selectedTime, setSelectedTime] = useState(moment(appointment.dateTime).format('HH:mm'));
   const [availableTimeSlots, setAvailableTimeSlots] = useState([]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loadingSlots, setLoadingSlots] = useState(false); // NEW
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
   // Fetch all appointments to check for conflicts (excluding the current one)
   useEffect(() => {
@@ -34,13 +32,12 @@ function RescheduleForm({ appointment, onRescheduleComplete }) {
         setLoadingSlots(false);
       }
 
-      const duration = SERVICE_DURATIONS[appointment.service]; // Use the original service duration
+      const duration = SERVICE_DURATIONS[appointment.service];
       if (duration) {
         const generated = generateAvailableSlots(selectedDate, duration);
-        // Exclude the current appointment from conflict check
-        const filtered = filterBookedSlots(generated, allAppointments, duration, appointment.id);
+        // Exclude the current appointment from conflict check AND pass therapistId
+        const filtered = filterBookedSlots(generated, allAppointments, duration, appointment.id, appointment.therapistId);
         setAvailableTimeSlots(filtered);
-        // Ensure selectedTime is still valid or clear it
         if (!filtered.some(slot => slot.format('HH:mm') === selectedTime)) {
           setSelectedTime('');
         }
@@ -51,7 +48,7 @@ function RescheduleForm({ appointment, onRescheduleComplete }) {
     };
 
     fetchAllAppointmentsAndFilterSlots();
-  }, [selectedDate, appointment.service, appointment.id]); // Re-run when date or service changes
+  }, [selectedDate, appointment.service, appointment.id, appointment.therapistId]); // NEW: Add therapistId to dependencies
 
   const handleRescheduleSubmit = async (e) => {
     e.preventDefault();
@@ -78,7 +75,7 @@ function RescheduleForm({ appointment, onRescheduleComplete }) {
         rescheduledAt: new Date().toISOString(),
       });
       alert('Appointment rescheduled successfully!');
-      onRescheduleComplete(); // Notify parent to refresh list and close form
+      onRescheduleComplete();
     } catch (e) {
       console.error("Error rescheduling appointment: ", e);
       setError("Failed to reschedule appointment: " + e.message);
@@ -91,7 +88,7 @@ function RescheduleForm({ appointment, onRescheduleComplete }) {
     <section className="appointment-form">
       <h2>Reschedule Appointment</h2>
       {error && <p className="error-message">{error}</p>}
-      <p>Original: <strong>{appointment.service}</strong> on {new Date(appointment.dateTime).toLocaleString()}</p>
+      <p>Original: <strong>{appointment.service}</strong> with <strong>{appointment.therapistId}</strong> on {new Date(appointment.dateTime).toLocaleString()}</p> {/* NEW: Display therapist ID */}
       <form onSubmit={handleRescheduleSubmit}>
         <div>
           <label>Select New Date:</label>
@@ -110,7 +107,7 @@ function RescheduleForm({ appointment, onRescheduleComplete }) {
           {loadingSlots ? (
             <p>Loading available slots...</p>
           ) : availableTimeSlots.length === 0 ? (
-            <p>No available slots for {appointment.service} on {moment(selectedDate).format('YYYY-MM-DD')}.</p>
+            <p>No available slots for {appointment.service} on {moment(selectedDate).format('YYYY-MM-DD')} with {appointment.therapistId}.</p>
           ) : (
             <select
               id="newTimeSlot"
